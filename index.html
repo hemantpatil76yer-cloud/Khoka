@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Khoka - P2P Train Parcel Delivery Marketplace</title>
+  <meta name="description" content="A lightweight, chat-driven, zero-escrow coordination engine matching Senders with Travelers on the Indian Railways network.">
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="styles.css">
+  <!-- Fonts & Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+  <!-- Background Animated Lights -->
+  <div style="position: fixed; top: -10%; left: -10%; width: 50%; height: 50%; background: radial-gradient(circle, rgba(139,92,246,0.12) 0%, rgba(0,0,0,0) 70%); z-index: -1; pointer-events: none;"></div>
+  <div style="position: fixed; bottom: -10%; right: -10%; width: 50%; height: 50%; background: radial-gradient(circle, rgba(20,184,166,0.12) 0%, rgba(0,0,0,0) 70%); z-index: -1; pointer-events: none;"></div>
+
+  <div class="simulator-container">
+    <div class="simulator-header">
+      <h1><i class="fa-solid fa-train-subway" style="color: var(--color-primary);"></i> KHOKA</h1>
+      <p>P2P Train Parcel Delivery Marketplace • Indian Railways</p>
+      
+      <!-- Simulator Control Panel -->
+      <div class="controls-row" style="margin-top: 15px;">
+        <button class="btn-secondary-outline" id="toggle-view-btn">
+          <i class="fa-solid fa-mobile-screen"></i> Toggle Desktop View
+        </button>
+        <button class="btn-secondary-outline" id="toggle-network-btn">
+          <i class="fa-solid fa-wifi" style="color: #25d366;"></i> Mock: Online
+        </button>
+        <button class="btn-secondary-outline" id="test-alarm-btn">
+          <i class="fa-solid fa-bell" style="color: var(--color-accent);"></i> Force Alarm Test (5m)
+        </button>
+      </div>
+    </div>
+
+    <!-- Live Telemetry / Alarm Controller Panel (Always visible in web console context) -->
+    <div class="telemetry-controller-bar" style="width: 100%; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-surface); max-width: 410px;" id="telemetry-bar">
+      <div class="telemetry-status">
+        <span class="status-dot active" id="telemetry-dot"></span>
+        <span id="telemetry-text">GPS Tracking Off (No Active Train)</span>
+      </div>
+      <button class="telemetry-control-btn" id="telemetry-sim-btn" style="display: none;">Speed up Train</button>
+    </div>
+
+    <!-- Phone Mock Frame -->
+    <div class="device-frame" id="device-frame">
+      <div class="device-notch"></div>
+      
+      <div class="app-canvas">
+        
+        <!-- Status Bar Mock -->
+        <div class="status-bar">
+          <span id="status-time">16:43</span>
+          <div class="status-right">
+            <i class="fa-solid fa-signal"></i>
+            <i class="fa-solid fa-wifi" id="app-wifi-icon"></i>
+            <i class="fa-solid fa-battery-three-quarters"></i>
+          </div>
+        </div>
+
+        <!-- Screens Canvas -->
+        <div class="screens-container">
+
+          <!-- ==============================================
+               SCREEN 1: ONBOARDING & AUTHENTICATION
+               ============================================== -->
+          <div class="screen active" id="screen-auth">
+            <div class="auth-bg">
+              <div class="auth-logo-section">
+                <div class="auth-logo-icon">K</div>
+                <h2>Welcome to Khoka</h2>
+                <p>Zero-Escrow P2P Train Delivery</p>
+              </div>
+
+              <!-- Phone Inputs Panel -->
+              <div class="auth-card" id="auth-phone-panel">
+                <div class="whatsapp-badge">
+                  <i class="fa-brands fa-whatsapp"></i> OTP via WhatsApp
+                </div>
+                <div class="input-group">
+                  <label for="auth-mobile">Enter Indian Mobile Number</label>
+                  <div class="input-field-wrapper has-prefix">
+                    <span class="input-prefix">+91</span>
+                    <input type="tel" id="auth-mobile" class="input-field" placeholder="98765 43210" maxlength="10">
+                  </div>
+                </div>
+                <button class="btn-primary" id="btn-send-otp" disabled>
+                  Get OTP Code <i class="fa-solid fa-arrow-right"></i>
+                </button>
+                <span class="auth-desc-text">By signing up, you agree to comply with Indian Railways safety luggage regulations.</span>
+              </div>
+
+              <!-- OTP Verification Panel (Hidden Initially) -->
+              <div class="auth-card" id="auth-otp-panel" style="display: none;">
+                <div class="whatsapp-badge">
+                  <i class="fa-solid fa-lock"></i> Verification Code Sent
+                </div>
+                <div class="input-group">
+                  <label>Enter 6-Digit OTP</label>
+                  <div class="otp-box-container">
+                    <input type="text" class="otp-box" maxlength="1" pattern="[0-9]*" inputmode="numeric">
+                    <input type="text" class="otp-box" maxlength="1" pattern="[0-9]*" inputmode="numeric">
+                    <input type="text" class="otp-box" maxlength="1" pattern="[0-9]*" inputmode="numeric">
+                    <input type="text" class="otp-box" maxlength="1" pattern="[0-9]*" inputmode="numeric">
+                    <input type="text" class="otp-box" maxlength="1" pattern="[0-9]*" inputmode="numeric">
+                    <input type="text" class="otp-box" maxlength="1" pattern="[0-9]*" inputmode="numeric">
+                  </div>
+                </div>
+                
+                <!-- Basic Profile Setup Inside OTP -->
+                <div class="input-group" style="margin-top: 10px;">
+                  <label for="auth-name">Your Full Name</label>
+                  <input type="text" id="auth-name" class="input-field" placeholder="e.g. Hemant Sharma">
+                </div>
+
+                <button class="btn-primary" id="btn-verify-otp">
+                  Complete Registration <i class="fa-solid fa-circle-check"></i>
+                </button>
+                <button class="info-link-btn" id="btn-back-phone" style="margin-top: 8px; justify-content: center; width: 100%;">
+                  <i class="fa-solid fa-arrow-left"></i> Edit Phone Number
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ==============================================
+               SCREEN 2: UNIVERSAL MATCH FEED BOARD
+               ============================================== -->
+          <div class="screen" id="screen-feed">
+            <div class="app-header">
+              <div class="app-header-left">
+                <div class="user-avatar" id="feed-avatar" style="width:34px; height:34px; font-size: 0.95rem; cursor: pointer;">H</div>
+                <span class="app-header-title">Khoka Board</span>
+              </div>
+              <div class="app-header-actions">
+                <button class="btn-icon" id="btn-feed-logout" title="Logout"><i class="fa-solid fa-right-from-bracket"></i></button>
+              </div>
+            </div>
+
+            <!-- Tab Selectors -->
+            <div class="feed-tabs-row">
+              <button class="feed-tab active" id="tab-parcels">Parcels Looking for Transporters</button>
+              <button class="feed-tab" id="tab-travelers">Travelers with Capacity</button>
+            </div>
+
+            <!-- Filters Bar -->
+            <div class="feed-filter-bar">
+              <div class="filter-input-row">
+                <div class="filter-search-box">
+                  <i class="fa-solid fa-magnifying-glass"></i>
+                  <input type="text" id="filter-search" class="input-field" placeholder="Search Station Code, Train #, or Parcel...">
+                </div>
+              </div>
+              
+              <!-- Quick Filter Chips -->
+              <div class="active-filter-chips">
+                <span class="filter-chip active" id="chip-all">All Routes</span>
+                <span class="filter-chip" id="chip-ndls">From NDLS (Delhi)</span>
+                <span class="filter-chip" id="chip-hwh">From HWH (Kolkata)</span>
+                <span class="filter-chip" id="chip-mas">From MAS (Chennai)</span>
+              </div>
+            </div>
+
+            <!-- Main Listings Board -->
+            <div class="scrollable-content">
+              <div class="listings-list" id="listings-container">
+                <!-- Injected dynamically via app.js -->
+              </div>
+            </div>
+
+            <!-- Floating Action Button for Posting -->
+            <button class="fab-post" id="fab-post-listing" title="Create Listing">
+              <i class="fa-solid fa-plus"></i>
+            </button>
+          </div>
+
+          <!-- ==============================================
+               SCREEN 3: THE POSTING CREATION FORM
+               ============================================== -->
+          <div class="screen" id="screen-post">
+            <div class="app-header">
+              <div class="app-header-left">
+                <button class="btn-icon" id="btn-back-feed"><i class="fa-solid fa-chevron-left"></i></button>
+                <span class="app-header-title">Create Listing</span>
+              </div>
+            </div>
+
+            <!-- Post Type Tab Selectors -->
+            <div class="feed-tabs-row" style="background: hsl(var(--bg-primary)); border-bottom: 1px solid var(--border-color);">
+              <button class="feed-tab active" id="post-tab-sender" style="padding: 12px 6px;">Ship a Parcel (Sender)</button>
+              <button class="feed-tab" id="post-tab-traveler" style="padding: 12px 6px;">Share Luggage space (Traveler)</button>
+            </div>
+
+            <div class="scrollable-content">
+              <!-- SENDER FORM PANEL -->
+              <div id="form-sender-container">
+                <div class="form-section-title">Route & Item Details</div>
+                
+                <div class="input-row">
+                  <div class="input-group">
+                    <label for="send-from">From Station</label>
+                    <input type="text" id="send-from" class="input-field" placeholder="e.g. NDLS" maxlength="5">
+                  </div>
+                  <div class="input-group">
+                    <label for="send-to">To Station</label>
+                    <input type="text" id="send-to" class="input-field" placeholder="e.g. HWH" maxlength="5">
+                  </div>
+                </div>
+
+                <div class="input-group">
+                  <label for="send-title">Parcel Title</label>
+                  <input type="text" id="send-title" class="input-field" placeholder="e.g. Important Documents, Laptop Charger">
+                </div>
+
+                <div class="input-group">
+                  <label for="send-desc">Description</label>
+                  <textarea id="send-desc" class="input-field" placeholder="Describe the parcel details & pickup requirements..." style="resize: none; height: 80px; font-family: var(--font-body);"></textarea>
+                </div>
+
+                <div class="form-section-title">Logistics & Bounty</div>
+
+                <div class="input-row">
+                  <div class="input-group">
+                    <label for="send-weight">Weight (kg)</label>
+                    <input type="number" id="send-weight" class="input-field" placeholder="e.g. 2.5" step="0.1">
+                  </div>
+                  <div class="input-group">
+                    <label for="send-bounty">Bounty Offered (₹)</label>
+                    <input type="number" id="send-bounty" class="input-field" placeholder="e.g. 500">
+                  </div>
+                </div>
+
+                <!-- Dimension Reference Cards -->
+                <div class="input-group">
+                  <label>Select Package Size Category</label>
+                  <div class="dimension-cards-grid">
+                    <div class="dim-card active" data-size="document" data-dim="30x20x5 cm">
+                      <h4>Documents / Envelope</h4>
+                      <p>Up to 0.5 kg • Flat</p>
+                    </div>
+                    <div class="dim-card" data-size="small" data-dim="40x30x15 cm">
+                      <h4>Small Package</h4>
+                      <p>Up to 5 kg • Shoe-box</p>
+                    </div>
+                    <div class="dim-card" data-size="3a-max" data-dim="55x45x22.5 cm">
+                      <h4>AC 3-Tier Max Limit</h4>
+                      <p>Up to 10 kg • Official Limit</p>
+                    </div>
+                    <div class="dim-card" data-size="custom" data-dim="Custom cm">
+                      <h4>Custom Size</h4>
+                      <p>Enter dimensions below</p>
+                    </div>
+                  </div>
+                </div>
+
+                <button class="info-link-btn" id="btn-trigger-baggage-modal">
+                  <i class="fa-solid fa-circle-info"></i> View Indian Railways Luggage constraints
+                </button>
+
+                <div class="input-group" id="custom-dim-wrapper" style="display: none;">
+                  <label for="send-dimensions">Enter Custom Dimensions (L x W x H cm)</label>
+                  <input type="text" id="send-dimensions" class="input-field" placeholder="e.g. 35 x 25 x 10">
+                </div>
+
+                <button class="btn-primary" id="btn-submit-sender" style="margin-top: 15px;">
+                  Post Parcel Listing <i class="fa-solid fa-paper-plane"></i>
+                </button>
+              </div>
+
+              <!-- TRAVELER FORM PANEL -->
+              <div id="form-traveler-container" style="display: none;">
+                <div class="form-section-title">Train Travel Route</div>
+
+                <div class="input-row">
+                  <div class="input-group">
+                    <label for="travel-train-num">Train Number</label>
+                    <input type="text" id="travel-train-num" class="input-field" placeholder="e.g. 12302" maxlength="5">
+                  </div>
+                  <div class="input-group">
+                    <label for="travel-train-name">Train Name</label>
+                    <input type="text" id="travel-train-name" class="input-field" placeholder="e.g. Rajdhani Express">
+                  </div>
+                </div>
+
+                <div class="input-row">
+                  <div class="input-group">
+                    <label for="travel-from">From Station</label>
+                    <input type="text" id="travel-from" class="input-field" placeholder="e.g. NDLS" maxlength="5">
+                  </div>
+                  <div class="input-group">
+                    <label for="travel-to">To Station</label>
+                    <input type="text" id="travel-to" class="input-field" placeholder="e.g. HWH" maxlength="5">
+                  </div>
+                </div>
+
+                <div class="input-row">
+                  <div class="input-group">
+                    <label for="travel-date">Departure Date</label>
+                    <input type="date" id="travel-date" class="input-field">
+                  </div>
+                  <div class="input-group">
+                    <label for="travel-capacity">Free Capacity (kg)</label>
+                    <input type="number" id="travel-capacity" class="input-field" placeholder="e.g. 15" step="0.5">
+                  </div>
+                </div>
+
+                <div class="form-section-title">Coach Assignment Details</div>
+
+                <div class="input-row">
+                  <div class="input-group">
+                    <label for="travel-coach">Coach # (e.g. B1, A1)</label>
+                    <input type="text" id="travel-coach" class="input-field" placeholder="B1" maxlength="4">
+                  </div>
+                  <div class="input-group">
+                    <label>Travel Class</label>
+                    <div class="toggle-selector" id="travel-class-select">
+                      <button class="toggle-option active" data-class="3A">3A</button>
+                      <button class="toggle-option" data-class="2A">2A</button>
+                      <button class="toggle-option" data-class="SL">SL</button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="ref-constraint-highlight" id="travel-3a-warning" style="margin-top: 10px; font-size: 0.8rem; line-height: 1.4;">
+                  <i class="fa-solid fa-triangle-exclamation" style="color: var(--color-accent); margin-right: 6px;"></i>
+                  <strong>AC 3-Tier (3A) luggage rules:</strong> Strict limits apply. Senders' items must not exceed 55 cm x 45 cm x 22.5 cm to sit under berths.
+                </div>
+
+                <button class="btn-primary" id="btn-submit-traveler" style="margin-top: 15px;">
+                  Post Traveler Capacity <i class="fa-solid fa-paper-plane"></i>
+                </button>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- ==============================================
+               SCREEN 4: REALTIME MULTIMEDIA CHAT
+               ============================================== -->
+          <div class="screen" id="screen-chat">
+            <div class="app-header">
+              <div class="app-header-left">
+                <button class="btn-icon" id="btn-back-chat-feed"><i class="fa-solid fa-chevron-left"></i></button>
+                <div>
+                  <div class="app-header-title" id="chat-header-user">Traveler: Arjun</div>
+                  <div style="font-size: 0.7rem; color: #25d366; display: flex; align-items: center; gap: 4px;">
+                    <span style="width:6px; height:6px; background:#25d366; border-radius:50%; display:inline-block;"></span>
+                    Online • Active Route
+                  </div>
+                </div>
+              </div>
+              <div class="app-header-actions">
+                <!-- Masked Calling Button -->
+                <button class="btn-icon" id="btn-chat-call" style="border-color: var(--color-secondary); color: var(--color-secondary);" title="Masked Call via Proxy">
+                  <i class="fa-solid fa-phone-slash"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Lock Deal Action Banner -->
+            <div class="deal-status-banner" id="chat-deal-banner">
+              <span>Lock coordination structure & secure courier status</span>
+              <button class="deal-action-btn" id="btn-lock-deal-trigger">Lock Deal</button>
+            </div>
+
+            <!-- Chat Message Feed -->
+            <div class="chat-messages-area" id="chat-messages-container">
+              <!-- Dynamically populated -->
+            </div>
+
+            <!-- Real-time chat controls footer -->
+            <div class="chat-input-panel">
+              <!-- Mock Multimedia uploads -->
+              <button class="btn-icon" id="btn-chat-camera" title="Upload verification capture" style="width: 38px; height: 38px;">
+                <i class="fa-solid fa-camera"></i>
+              </button>
+              <button class="btn-icon" id="btn-chat-doc" title="Upload invoice receipt" style="width: 38px; height: 38px;">
+                <i class="fa-solid fa-file-pdf"></i>
+              </button>
+              
+              <input type="text" id="chat-input-message" class="input-field" placeholder="Negotiate payout & validation image..." style="border-radius: var(--radius-full);">
+              
+              <button class="btn-icon" id="btn-send-message" style="width: 38px; height: 38px; background: var(--color-primary); color: #fff; border: none;" title="Send">
+                <i class="fa-solid fa-paper-plane" style="font-size: 0.85rem;"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- ==============================================
+               SCREEN 5: LOCK DEAL FLOW & PLATFORM FEE SCREEN
+               ============================================== -->
+          <div class="screen" id="screen-deal">
+            <div class="app-header">
+              <div class="app-header-left">
+                <button class="btn-icon" id="btn-back-chat"><i class="fa-solid fa-chevron-left"></i></button>
+                <span class="app-header-title">Confirm Parcel Deal</span>
+              </div>
+            </div>
+
+            <div class="scrollable-content" style="display: flex; flex-direction: column; justify-content: center; gap: 20px;">
+              <div class="deal-overlay">
+                
+                <div class="deal-avatar-match">
+                  <div class="deal-user-card">
+                    <div class="user-avatar" id="deal-user-sender">S</div>
+                    <span style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 4px;">Sender</span>
+                  </div>
+                  <i class="fa-solid fa-handshake-simple deal-connector"></i>
+                  <div class="deal-user-card">
+                    <div class="user-avatar" id="deal-user-traveler" style="color: var(--color-secondary);">T</div>
+                    <span style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 4px;">Traveler</span>
+                  </div>
+                </div>
+
+                <h3 style="text-align: center; font-family: var(--font-display);">Review Pricing Breakdown</h3>
+
+                <div class="fee-breakdown-card">
+                  <div class="fee-line-item">
+                    <span>Negotiated Delivery Bounty</span>
+                    <span id="deal-breakdown-negotiated" style="font-weight: 600; color: var(--color-accent);">₹500</span>
+                  </div>
+                  <div class="fee-line-item">
+                    <span>Standard Platform Fee</span>
+                    <span>₹10.00</span>
+                  </div>
+                  <div class="fee-line-item discount">
+                    <span>100% Launch Discount Applied</span>
+                    <span>-₹10.00</span>
+                  </div>
+                  <div class="fee-line-item total">
+                    <span>Final Platform Payment</span>
+                    <span>₹0.00</span>
+                  </div>
+                </div>
+
+                <div class="deal-disclaimer">
+                  <i class="fa-solid fa-circle-exclamation" style="color: var(--text-secondary); margin-right: 4px;"></i>
+                  Khoka charges ₹0 for matching. Senders pay out the agreed bounty directly to the Traveler upon parcel verification at the destination platform.
+                </div>
+
+                <button class="btn-primary" id="btn-confirm-deal-final">
+                  Accept & Lock Deal <i class="fa-solid fa-lock"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </div> <!-- /screens-container -->
+
+      </div> <!-- /app-canvas -->
+    </div> <!-- /device-frame -->
+  </div> <!-- /simulator-container -->
+
+  <!-- ==============================================
+       OVERLAY A: GEOFENCED ALARM OVERRIDE SCREEN (CRITICAL ALARM WAKE-UP)
+       ============================================== -->
+  <div class="alarm-overlay-screen" id="alarm-overlay" style="display: none;">
+    <div class="alarm-header">
+      <div class="alarm-icon">
+        <i class="fa-solid fa-bell-on"></i>
+      </div>
+      <h2>STATION PROXIMITY WAKEUP!</h2>
+      <p id="alarm-station-title">Approaching Platform 3 at HWH Station</p>
+    </div>
+
+    <div class="alarm-telemetry-box">
+      <div class="alarm-tel-row">
+        <span class="alarm-tel-label">Active Train:</span>
+        <span class="alarm-tel-val" id="alarm-train-val">12302 (Rajdhani)</span>
+      </div>
+      <div class="alarm-tel-row">
+        <span class="alarm-tel-label">Distance to Geofence:</span>
+        <span class="alarm-tel-val" id="alarm-distance-val">1.2 km</span>
+      </div>
+      <div class="alarm-tel-row">
+        <span class="alarm-tel-label">Speed:</span>
+        <span class="alarm-tel-val">42 km/h</span>
+      </div>
+      <div class="alarm-tel-row" style="border-top: 1px dashed rgba(239,68,68,0.3); padding-top: 8px;">
+        <span class="alarm-tel-label">Estimated Time:</span>
+        <span class="alarm-tel-val eta" id="alarm-eta-val">4m 58s prior</span>
+      </div>
+    </div>
+
+    <!-- Continuous alarm mute action bypass system -->
+    <button class="btn-alarm-dismiss" id="btn-alarm-dismiss">
+      Dismiss Alarm & Haptics <i class="fa-solid fa-volume-xmark" style="margin-left: 6px;"></i>
+    </button>
+  </div>
+
+  <!-- ==============================================
+       MODAL B: BAGGAGE RULES REFERENCE modal SHEET
+       ============================================== -->
+  <div class="modal-overlay" id="baggage-modal">
+    <div class="modal-sheet">
+      <div class="modal-drag-handle"></div>
+      
+      <div class="modal-header-row">
+        <h3>Baggage Allowance Guidelines</h3>
+        <button class="btn-icon" id="btn-close-baggage" style="width: 32px; height: 32px; border-radius: var(--radius-sm);"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="modal-body">
+        <p>Indian Railways imposes structural luggage capacities per passenger ticket based on travel class guidelines. Transporters are advised not to exceed these thresholds:</p>
+        
+        <table class="ref-baggage-table">
+          <thead>
+            <tr>
+              <th>Class</th>
+              <th>Free Allowance</th>
+              <th>Marginal Cap</th>
+              <th>Dimensions Framework</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="background: rgba(139, 92, 246, 0.1); border: 1.5px solid var(--color-primary);">
+              <td><strong>AC 3-Tier (3A)</strong></td>
+              <td><strong>40 kg</strong></td>
+              <td><strong>10 kg</strong></td>
+              <td><strong>55 x 45 x 22.5 cm (Strict Limit)</strong></td>
+            </tr>
+            <tr>
+              <td>AC 2-Tier (2A)</td>
+              <td>50 kg</td>
+              <td>10 kg</td>
+              <td>55 x 45 x 22.5 cm</td>
+            </tr>
+            <tr>
+              <td>Sleeper (SL)</td>
+              <td>40 kg</td>
+              <td>10 kg</td>
+              <td>60 x 45 x 25 cm</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="ref-constraint-highlight">
+          <i class="fa-solid fa-triangle-exclamation" style="margin-right: 6px;"></i>
+          <strong>AC 3-Tier (3A) Constraint:</strong> Space underneath standard lower berths is narrow (approx 22.5 cm vertical clearance). Khoka enforces warnings for senders exceeding these bounds.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==============================================
+       MODAL C: CARD DETAILS SHEET MODAL
+       ============================================== -->
+  <div class="detail-sheet-modal" id="detail-modal">
+    <div class="detail-sheet" id="detail-sheet-content">
+      <!-- Populated dynamically via app.js -->
+    </div>
+  </div>
+
+  <!-- Client Application Engine -->
+  <script src="app.js"></script>
+</body>
+</html>
